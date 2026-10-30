@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
-using Newtonsoft.Json;
 using Test_Taste_Console_Application.Constants;
 using Test_Taste_Console_Application.Domain.DataTransferObjects;
 using Test_Taste_Console_Application.Domain.DataTransferObjects.JsonObjects;
@@ -39,6 +40,8 @@ namespace Test_Taste_Console_Application.Domain.Services
 
             var content = response.Content.ReadAsStringAsync().Result;
 
+            Console.WriteLine("Loading planets data from API...");
+
             //The JSON converter uses DTO's, that can be found in the DataTransferObjects folder, to deserialize the response content.
             var results = JsonConvert.DeserializeObject<JsonResult<PlanetDto>>(content);
 
@@ -50,6 +53,8 @@ namespace Test_Taste_Console_Application.Domain.Services
             {
                 if(planet.Moons != null)
                 {
+                    Console.WriteLine("Loading moons details for planets...");
+
                     var newMoonsCollection = new Collection<MoonDto>();
                     foreach (var moon in planet.Moons)
                     {

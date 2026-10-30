@@ -1,79 +1,98 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
+using Test_Taste_Console_Application.Constants;
 
 namespace Test_Taste_Console_Application.Utilities
 {
     public static class ConsoleWriter
     {
-        public static void CreateLine(int[] columnSizes)
+        // Generates a unique timestamped file per run in the project root folder (navigating up from bin/Debug/net5.0/)
+        private static readonly string OutputDirectory = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, @"..\..\..\FileOutput"));
+
+        private static readonly string OutputFilePath = Path.Combine(
+            OutputDirectory,
+            $"SolarSystemOutput_{DateTime.UtcNow:yyyyMMdd_HHmmss}.txt"
+        );
+
+        static ConsoleWriter()
         {
-            /*
-             This is an example of what the function can create:
-             --------------------+--------------------+--------------------
-            */
-            var stringBuilder = new StringBuilder();
-
-            for (var i = 0; i < columnSizes.Length; i++)
-            {
-                stringBuilder.Append(string.Concat(Enumerable.Repeat('-', columnSizes[i])));
-                if (i != columnSizes.Length - 1)
-                {
-                    stringBuilder.Append('+');
-                }
-            }
-
-            Console.WriteLine(stringBuilder.ToString());
-            stringBuilder.Clear();
+            if( !Directory.Exists(OutputDirectory))
+                Directory.CreateDirectory(OutputDirectory);
         }
 
-        public static void CreateText(string[] columnLabels, int[] columnSizes)
+        /// <summary>
+        /// Writes text to both the console window and the unique timestamped text file on disk,
+        /// while handling potential file I/O exceptions, printing warnings, and logging via log4net.
+        /// </summary>
+        private static void WriteLineToBoth(string text = "")
         {
-            /*
-             This is an example of what the function can create:
-             Moon's Number       |Moon's Id           |Moon's Average Temperature
-            */
-            if (!columnLabels.Length.Equals(columnSizes.Length))
-            {
-                return;
-            }
+            // 1. Output to Console
+            Console.WriteLine(text);
 
-            var result = string.Empty;
-            var currentPosition = 0;
-            for (var i = 0; i < columnLabels.Length; i++)
+            // 2. Output to Disk and handle/log any unexpected I/O failures
+            try
             {
-                currentPosition += columnSizes[i];
-                result += columnLabels[i];
-                if (i != columnLabels.Length - 1)
+                File.AppendAllText(OutputFilePath, text + Environment.NewLine, Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"{ExceptionMessage.ScreenOutputOperationFailed} Could not write output text to file path '{OutputFilePath}': {ex.Message}";
+
+                // Keep the user informed on the console without crashing the application flow
+                Console.WriteLine($"[Warning] {errorMessage}");
+
+                // Safely log the error using the project's configured log4net Logger instance
+                try
                 {
-                    result = result.PadRight(currentPosition + i);
-                    result += '|';
+                    Logger.Instance.Error(errorMessage);
+                }
+                catch (Exception logEx)
+                {
+                    Console.WriteLine($"[Critical] Failed to write to log4net: {logEx.Message}");
                 }
             }
-
-            Console.WriteLine(result);
         }
 
         public static void CreateHeader(string[] columnLabels, int[] columnSizes)
         {
-            /*
-             This is an example of what the function can create:
-             --------------------+--------------------+------------------------------
-             Moon's Number       |Moon's Id           |Moon's Average Temperature
-             --------------------+--------------------+------------------------------
-            */
             CreateLine(columnSizes);
             CreateText(columnLabels, columnSizes);
             CreateLine(columnSizes);
         }
 
-        public static void CreateEmptyLines(int totalEmptyLines)
+        public static void CreateText(string[] columnValues, int[] columnSizes)
         {
-            //The function can create empty spaces.
-            for (var i = 0; i < totalEmptyLines; i++)
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append('|');
+            for (int i = 0; i < columnValues.Length; i++)
             {
-                Console.WriteLine();
+                stringBuilder.Append(columnValues[i].PadRight(columnSizes[i]));
+                stringBuilder.Append('|');
+            }
+
+            WriteLineToBoth(stringBuilder.ToString());
+        }
+
+        public static void CreateLine(int[] columnSizes)
+        {
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append('+');
+            foreach (var columnSize in columnSizes)
+            {
+                stringBuilder.Append(new string('-', columnSize));
+                stringBuilder.Append('+');
+            }
+
+            WriteLineToBoth(stringBuilder.ToString());
+        }
+
+        public static void CreateEmptyLines(int updateCount)
+        {
+            for (int i = 0; i < updateCount; i++)
+            {
+                WriteLineToBoth();
             }
         }
     }

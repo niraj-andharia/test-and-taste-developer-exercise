@@ -145,38 +145,54 @@ namespace Test_Taste_Console_Application.Domain.Services
 
         public void OutputAllPlanetsAndTheirAverageMoonGravityToConsole()
         {
-            //The function works the same way as the PrintAllPlanetsAndTheirMoonsToConsole function. You can find more comments there.
+            Console.WriteLine(OutputString.LoadingData);
+
+            // Retrieve all planets from the service
             var planets = _planetService.GetAllPlanets().ToArray();
+
             if (!planets.Any())
+            {
+                Console.WriteLine(OutputString.NoPlanetsFound);
+                return;
+            }
+
+            // Filter only planets that have at least one moon
+            var planetsWithMoons = planets.Where(p => p.HasMoons()).ToArray();
+
+            if (!planetsWithMoons.Any())
             {
                 Console.WriteLine(OutputString.NoMoonsFound);
                 return;
             }
 
-            var columnSizes = new[] { 20, 30 };
+            Console.WriteLine(OutputString.WritingData);
+
+            // Define column sizes and labels
+            var columnSizes = new[] { 20, 30, 50 };
             var columnLabels = new[]
             {
-                OutputString.PlanetId, OutputString.PlanetMoonAverageTemperature
+                OutputString.PlanetNumber,
+                OutputString.PlanetId,
+                OutputString.PlanetMoonAverageTemperature
             };
-
 
             ConsoleWriter.CreateHeader(columnLabels, columnSizes);
 
-            foreach(Planet planet in planets)
+            for (int i = 0; i < planetsWithMoons.Length; i++)
             {
-                if(planet.HasMoons())
-                {
-                    ConsoleWriter.CreateText(new string[] { $"{planet.Id}", $"{planet.AverageMoonTemperature}" }, columnSizes);
-                }
-                else
-                {
-                    ConsoleWriter.CreateText(new string[] { $"{planet.Id}", $"-" }, columnSizes);
-                }
+                ConsoleWriter.CreateText(
+                    new string[]
+                    {
+                (i + 1).ToString(),
+                CultureInfoUtility.TextInfo.ToTitleCase(planetsWithMoons[i].Id),
+                planetsWithMoons[i].AverageMoonTemperature.ToString("0.00") + " K"
+                    },
+                    columnSizes);
             }
 
             ConsoleWriter.CreateLine(columnSizes);
             ConsoleWriter.CreateEmptyLines(2);
-            
+
             /*
                 --------------------+--------------------------------------------------
                 Planet's Number     |Planet's Moon Average Temperature
