@@ -156,7 +156,7 @@ namespace Test_Taste_Console_Application.Domain.Services
             var columnSizes = new[] { 20, 30 };
             var columnLabels = new[]
             {
-                OutputString.PlanetId, OutputString.PlanetMoonAverageGravity
+                OutputString.PlanetId, OutputString.PlanetMoonAverageTemperature
             };
 
 
@@ -166,7 +166,7 @@ namespace Test_Taste_Console_Application.Domain.Services
             {
                 if(planet.HasMoons())
                 {
-                    ConsoleWriter.CreateText(new string[] { $"{planet.Id}", $"{planet.AverageMoonGravity}" }, columnSizes);
+                    ConsoleWriter.CreateText(new string[] { $"{planet.Id}", $"{planet.AverageMoonTemperature}" }, columnSizes);
                 }
                 else
                 {
@@ -179,7 +179,7 @@ namespace Test_Taste_Console_Application.Domain.Services
             
             /*
                 --------------------+--------------------------------------------------
-                Planet's Number     |Planet's Average Moon Gravity
+                Planet's Number     |Planet's Moon Average Temperature
                 --------------------+--------------------------------------------------
                 1                   |0.0f
                 --------------------+--------------------------------------------------
